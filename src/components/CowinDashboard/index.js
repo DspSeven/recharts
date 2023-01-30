@@ -1,9 +1,12 @@
 // Write your code here
+// Write your code here
 import {Component} from 'react'
 import Loader from 'react-loader-spinner'
 import VaccinationCoverage from '../VaccinationCoverage'
+import VaccinationByGender from '../VaccinationByGender'
+import VaccinationByAge from '../VaccinationByAge'
 
-const covidConstants = {
+const covConstants = {
   initial: 'INITIAL',
   success: 'SUCCESS',
   failure: 'FAILURE',
@@ -12,23 +15,23 @@ const covidConstants = {
 
 class CowinDashboard extends Component {
   state = {
-    apiStatus: covidConstants.initial,
+    apiStatus: covConstants.initial,
     days: [],
     age: [],
     gender: [],
   }
 
   componentDidMount() {
-    this.getCovidDetails()
+    this.getCovDetails()
   }
 
-  getCovidDetails = async () => {
-    this.setState({apiStatus: covidConstants.inProgress})
-    const apiUrl = 'https://apis.ccbp.in/covid-vaccination-data'
+  getCovDetails = async () => {
+    this.setState({apiStatus: covConstants.inProgress})
+    const vaccinationDataApiUrl = 'https://apis.ccbp.in/covid-vaccination-data'
     const options = {
       method: 'GET',
     }
-    const response = await fetch(apiUrl, options)
+    const response = await fetch(vaccinationDataApiUrl, options)
     console.log(response)
     if (response.ok) {
       const data = await response.json()
@@ -49,20 +52,24 @@ class CowinDashboard extends Component {
         gender: gender.gender,
       }))
       this.setState({
-        apiStatus: covidConstants.success,
+        apiStatus: covConstants.success,
         days: lastSevenDaysVaccination,
         age: vaccinationByAge,
         gender: vaccinationByGender,
       })
+    } else {
+      this.setState({apiStatus: covConstants.failure})
     }
   }
 
   // success view
   renderThreeCharts = () => {
-    const {days} = this.state
+    const {days, age, gender} = this.state
     return (
       <div>
         <VaccinationCoverage days={days} />
+        <VaccinationByGender gender={gender} />
+        <VaccinationByAge age={age} />
       </div>
     )
   }
@@ -72,7 +79,21 @@ class CowinDashboard extends Component {
     console.log('loader')
     return (
       <div data-testid="loader">
-        <Loader type="ThreeDots" color="#000000" height={80} width={80} />
+        <Loader type="ThreeDots" color="#ffffff" height={80} width={80} />
+      </div>
+    )
+  }
+
+  // failure view
+  failureView = () => {
+    console.log('failure')
+    return (
+      <div>
+        <img
+          src="https://assets.ccbp.in/frontend/react-js/api-failure-view.png"
+          alt="failure view"
+        />
+        <h1>Something went wrong</h1>
       </div>
     )
   }
@@ -80,11 +101,11 @@ class CowinDashboard extends Component {
   startSwitch = () => {
     const {apiStatus} = this.state
     switch (apiStatus) {
-      case covidConstants.success:
+      case covConstants.success:
         return this.renderThreeCharts()
-      case covidConstants.failure:
+      case covConstants.failure:
         return this.failureView()
-      case covidConstants.inProgress:
+      case covConstants.inProgress:
         return this.renderLoader()
       default:
         return null
@@ -92,7 +113,7 @@ class CowinDashboard extends Component {
   }
 
   renderCowin = () => {
-    console.log('covid-19')
+    console.log('cov-19')
     return (
       <div>
         <div>
@@ -102,7 +123,7 @@ class CowinDashboard extends Component {
           />
           <p>Co-WIN</p>
         </div>
-        <p>CoWIN vaccination in india</p>
+        <h1>CoWIN vaccination in india</h1>
       </div>
     )
   }
