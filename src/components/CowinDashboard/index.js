@@ -16,9 +16,7 @@ const covConstants = {
 class CowinDashboard extends Component {
   state = {
     apiStatus: covConstants.initial,
-    days: [],
-    age: [],
-    gender: [],
+    vaccinationData: {},
   }
 
   componentDidMount() {
@@ -27,35 +25,33 @@ class CowinDashboard extends Component {
 
   getCovDetails = async () => {
     this.setState({apiStatus: covConstants.inProgress})
-    const vaccinationDataApiUrl = 'https://apis.ccbp.in/covid-vaccination-data'
-    const options = {
-      method: 'GET',
-    }
-    const response = await fetch(vaccinationDataApiUrl, options)
+    const covidVaccinationDataApiUrl =
+      'https://apis.ccbp.in/covid-vaccination-data'
+    const response = await fetch(covidVaccinationDataApiUrl)
     console.log(response)
     if (response.ok) {
       const data = await response.json()
       console.log(data)
-      const lastSevenDaysVaccination = data.last_7_days_vaccination.map(
-        sevenDays => ({
-          vaccineDate: sevenDays.vaccine_date,
-          dose1: sevenDays.dose_1,
-          dose2: sevenDays.dose_2,
-        }),
-      )
-      const vaccinationByAge = data.vaccination_by_age.map(age => ({
-        age: age.age,
-        count: age.count,
-      }))
-      const vaccinationByGender = data.vaccination_by_gender.map(gender => ({
-        count: gender.count,
-        gender: gender.gender,
-      }))
+      const updatedData = {
+        lastSevenDaysVaccination: data.last_7_days_vaccination.map(
+          sevenDays => ({
+            vaccineDate: sevenDays.vaccine_date,
+            dose1: sevenDays.dose_1,
+            dose2: sevenDays.dose_2,
+          }),
+        ),
+        vaccinationByAge: data.vaccination_by_age.map(age => ({
+          age: age.age,
+          count: age.count,
+        })),
+        vaccinationByGender: data.vaccination_by_gender.map(gender => ({
+          count: gender.count,
+          gender: gender.gender,
+        })),
+      }
       this.setState({
         apiStatus: covConstants.success,
-        days: lastSevenDaysVaccination,
-        age: vaccinationByAge,
-        gender: vaccinationByGender,
+        vaccinationData: updatedData,
       })
     } else {
       this.setState({apiStatus: covConstants.failure})
@@ -64,12 +60,12 @@ class CowinDashboard extends Component {
 
   // success view
   renderThreeCharts = () => {
-    const {days, age, gender} = this.state
+    const {vaccinationData} = this.state
     return (
       <div>
-        <VaccinationCoverage days={days} />
-        <VaccinationByGender gender={gender} />
-        <VaccinationByAge age={age} />
+        <VaccinationCoverage days={vaccinationData.lastSevenDaysVaccination} />
+        <VaccinationByGender gender={vaccinationData.vaccinationByGender} />
+        <VaccinationByAge age={vaccinationData.vaccinationByAge} />
       </div>
     )
   }
